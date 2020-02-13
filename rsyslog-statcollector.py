@@ -1,4 +1,4 @@
-#!/bin/env python2.6
+#!/usr/bin/env python
 
 import datetime
 import time
@@ -23,8 +23,7 @@ def timeit(method):
     ts = time.time()
     result = method(*args, **kw)
     te = time.time()
-    print '%r %10f sec' % \
-          (method.__name__, te-ts)
+    #print '%r %10f sec' % (method.__name__, te-ts)
     return result
   return timed
 
@@ -33,8 +32,7 @@ def timeit_detailed(method):
     ts = time.time()
     result = method(*args, **kw)
     te = time.time()
-    print '%r (%r, %r) %2.2f sec' % \
-          (method.__name__, args, kw, te-ts)
+    #print '%r (%r, %r) %2.2f sec' % (method.__name__, args, kw, te-ts)
     return result
   return timed
 
@@ -77,7 +75,7 @@ def SIGReloadHandler(signum, frame):
   global __reload
   print 'Reopening stat file....'
   __reload = True
-  
+
 def gen_metrics(line):
   #print 'Generating Metrics'
   global __prev_stats_dict
@@ -87,8 +85,9 @@ def gen_metrics(line):
   _stats_timestamp = raw_list[0]
   _stats_server = socket.getfqdn().replace('.','_')
   stat_msg = [raw_list[1].strip().translate(string.maketrans('-(', '_.'), '*/-)').strip(), ' '.join(raw_list[2:]).translate(string.maketrans('-', '_'), '()*/.-').strip()]
+  #print(stat_msg)
   stat_msg[0] = stat_msg[0].translate(string.maketrans(' ', '_'), ':')
-  stat_msg[1] = dict((k, int(v)) for k, v in [x.split('=') for x in stat_msg[1].strip().split(' ')])
+  stat_msg[1] = dict((k, int(v)) for k, v in [x.split('=') for x in stat_msg[1].strip().split(' ')] if k != 'origin')
   for k, v in stat_msg[1].iteritems():
     metric_name = stat_msg[0] + '.' + k
     _stats_dict[metric_name] = v
@@ -130,7 +129,7 @@ def main(options, arguments):
       metrics = gen_metrics(line)
       submit(metric_root=options.metric_root, filename=options.file.split('/')[-1], metrics=metrics, server=options.server)
     else:
-      time.sleep(10)
+      time.sleep(3)
 
     if __reload == True:
         fd.close()
